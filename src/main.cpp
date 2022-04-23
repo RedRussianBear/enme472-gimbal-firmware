@@ -17,9 +17,11 @@
 #define BUTTON_PIN      2
 
 Adafruit_MPU6050 imu;
-Gimbal gimbal_x(5), gimbal_y(6);
+Gimbal gimbal_x(9), gimbal_y(10);
 
 uint8_t machine_state = STATE_LOADING;
+float gim_x_eff_g_angle;
+float gim_y_eff_g_angle;
 
 void setup() {
 #ifdef VDEBUG
@@ -47,17 +49,24 @@ void setup() {
     pinMode(BUTTON_PIN, INPUT_PULLUP);
 
     machine_state = STATE_ARMED;
+    sensors_event_t accel, gyro, temp;
+    imu.getEvent(&accel, &gyro, &temp);
+    gim_x_eff_g_angle = atan2f(accel.acceleration.y, -accel.acceleration.x);
+    gim_y_eff_g_angle = atan2f(accel.acceleration.z, -accel.acceleration.x);
 }
 
 void loop() {
     static unsigned long last_cycle = millis();
+    float dt = (float) (millis() - last_cycle) / 1000.0f;
     sensors_event_t accel, gyro, temp;
     imu.getEvent(&accel, &gyro, &temp);
 
-    float gim_x_eff_g_angle = atan2f(accel.acceleration.y, -accel.acceleration.x);
-    float gim_y_eff_g_angle = atan2f(accel.acceleration.z, -accel.acceleration.x);
+    gim_x_eff_g_angle = 0.75f * atan2f(accel.acceleration.y, -accel.acceleration.x)
+                        + 0.25f * (gim_x_eff_g_angle + -gyro.gyro.z * dt);
+    gim_y_eff_g_angle = 0.75f * atan2f(accel.acceleration.z, -accel.acceleration.x)
+                        + 0.25f * (gim_y_eff_g_angle + -gyro.gyro.y * dt);
 
-    switch (machine_state) {
+    switch (machine_state) {+ 0.2f * (gim_x_eff_g_angle + gyro.gyro.z * dt);
         case STATE_ARMED:
             gimbal_x.setAngle(0);
             gimbal_y.setAngle(0);
@@ -75,7 +84,7 @@ void loop() {
             break;
 
         case STATE_DRINK:
-            gimbal_x.setAngle(gim_x_eff_g_angle + ((float) PI / 6.0f));
+            gimbal_x.setAngle(gim_x_eff_g_angle - ((float) PI / 4.0f));
             gimbal_y.setAngle(gim_y_eff_g_angle);
 
             if (digitalRead(BUTTON_PIN) == HIGH)

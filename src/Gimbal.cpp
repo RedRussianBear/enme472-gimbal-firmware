@@ -5,8 +5,8 @@
 #include "Gimbal.h"
 #include "Arduino.h"
 
-#define SERVO_MAX_US    1900
-#define SERVO_MIN_US    1100
+#define SERVO_MAX_US    2400
+#define SERVO_MIN_US    600
 #define SERVO_RANGE_US  (SERVO_MAX_US - SERVO_MIN_US)
 #define SERVO_MAX_RAD   (PI/2.0f)
 #define SERVO_MIN_RAD   (-PI/2.0f)
