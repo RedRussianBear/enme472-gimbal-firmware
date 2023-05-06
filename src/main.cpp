@@ -78,7 +78,7 @@ void loop() {
     float gz = gyro.gyro.z + parameters.gz_off;
 
     float gim_x_mag = ax*ax + ay*ay;
-    float gim_y_mag = ax*az + ax*ax;
+    float gim_y_mag = az*az + ax*ax;
     float gim_x_ang_est = (gim_x_mag > 8*8 && gim_x_mag < 11*11) ? atan2f(ay, -ax) : gim_x_eff_g_angle;
     float gim_y_ang_est = (gim_y_mag > 8*8 && gim_y_mag < 11*11) ? atan2f(az, -ax) : gim_y_eff_g_angle;
 
@@ -105,7 +105,7 @@ void loop() {
             break;
 
         case STATE_DRINK:
-            gimbal_x.setAngle(parameters.gim_x_off - ((float) PI / 9.0f));
+            gimbal_x.setAngle(parameters.gim_x_off);
             gimbal_y.setAngle(-(gim_y_eff_g_angle + parameters.gim_y_off));
 
             if (digitalRead(BUTTON_PIN) == HIGH)
